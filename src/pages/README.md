@@ -1,0 +1,1 @@
+Page-level route components live here. The current UI prototype keeps route views together in App.jsx; split each route into a dedicated page module as Firebase data hooks are connected.\n
