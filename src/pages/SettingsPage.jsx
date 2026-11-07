@@ -43,12 +43,17 @@ export default function SettingsPage(p) {
           <p>Set the income you want to manage each month.</p>
 
           <label className="field-label">Monthly income (INR)</label>
+
           <input
             className="text-input"
             type="number"
             min="0"
-            value={p.salary}
-            onChange={e => p.setSalary(Math.max(0, Number(e.target.value)))}
+            value={p.salary === 0 ? '' : p.salary}
+            placeholder="Enter monthly income"
+            onChange={e => {
+              const value = e.target.value
+              p.setSalary(value === '' ? 0 : Math.max(0, Number(value)))
+            }}
           />
 
           <div className="settings-tip">
