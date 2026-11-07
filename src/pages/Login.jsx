@@ -1,8 +1,10 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { auth, googleProvider } from '../firebase'
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
@@ -19,6 +21,15 @@ export default function Login() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
+  // Handle the result after Google redirects back to SmartSpend
+  useEffect(() => {
+    getRedirectResult(auth)
+      .catch(err => {
+        console.error('Google redirect error:', err)
+        setError(err.message || 'Google sign-in failed.')
+      })
+  }, [])
+
   async function emailSubmit(event) {
     event.preventDefault()
     setLoading(true)
@@ -32,6 +43,7 @@ export default function Login() {
         const result = await createUserWithEmailAndPassword(
           auth, normalizedEmail, password
         )
+
         if (name.trim()) {
           await updateProfile(result.user, {
             displayName: name.trim()
@@ -64,12 +76,17 @@ export default function Login() {
     setNotice('')
 
     try {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider)
+        return
+      }
+
       await signInWithPopup(auth, googleProvider)
     } catch (err) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setError(err.message)
-      }
-    } finally {
+      console.error('Google login error:', err)
+      setError(err.message || 'Google sign-in failed.')
       setLoading(false)
     }
   }
@@ -182,7 +199,7 @@ export default function Login() {
           onClick={googleLogin}
           disabled={loading}
         >
-          Continue with Google
+          {loading ? 'Please wait...' : 'Continue with Google'}
         </button>
 
         {notice && (
